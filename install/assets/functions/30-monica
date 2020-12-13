@@ -1,0 +1,108 @@
+#!/usr/bin/with-contenv bash
+
+update_env() {
+    print_debug "Updating .env '$1' with '$2' value"
+    if [[ $2 = *[[:space:]]* ]] ; then
+        sed -i --follow-symlinks "s|${1}=.*|$1=\"$2\"|g" /${NGINX_WEBROOT}/.env
+    else
+        sed -i --follow-symlinks "s|${1}=.*|$1=$2|g" /${NGINX_WEBROOT}/.env
+    fi
+}
+
+configure_application() {
+    update_env APP_ENV "${STAGE}"
+    update_env APP_DEBUG "${APP_DEBUG}"
+    update_env APP_NAME "${APP_NAME}"
+
+    if grep -q "HASH_SALT=ChangeMeBy20+KeyLength" "/${NGINX_WEBROOT}/.env" ; then
+        update_env HASH_SALT $(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+    fi
+
+    update_env APP_URL "${SITE_URL}"
+    update_env APP_DISABLE_SIGNUP ${SIGNUP_DISABLE}
+    update_env APP_SIGNUP_DOUBLE_OPTIN ${SIGNUP_DOUBLE_OPTIN}
+
+    # update_env BROADCAST_DRIVER ${BROADCAST_DRIVER}
+    update_env CACHE_DRIVER ${CACHE_DRIVER}
+    update_env QUEUE_CONNECTION ${QUEUE_CONNECTION}
+
+   if [ "${QUENE_CONNECTION}" = "sync" ]; then
+       service_stop 30-monica
+   fi
+
+   # #update_env MEDIA_DISK "${MEDIA_DISK}"
+   # #mkdir -p ${NGINX_WEBROOT}/public/${MEDIA_DISK}
+   # mkdir -p ${NGINX_WEBROOT}/public/uploads/
+   update_env SESSION_DRIVER ${SESSION_DRIVER}
+   update_env SESSION_LIFETIME ${SESSION_LIFETIME}
+}
+
+configure_db() {
+    ## MariaDB
+    update_env DB_DATABASE "${DB_NAME}"
+    update_env DB_HOST "${DB_HOST}"
+    update_env DB_PASSWORD "${DB_PASS}"
+    update_env DB_PORT "${DB_PORT}"
+    update_env DB_USERNAME "${DB_USER}"
+
+    ## Redis
+    update_env REDIS_HOST "${REDIS_HOST}"
+    update_env REDIS_PASSWORD "${REDIS_PASSWORD}"
+    update_env REDIS_PORT "${REDIS_PORT}"
+}
+
+configure_mail() {
+    update_env MAIL_ENCRYPTION "${SMTP_ENCRYPTION}"
+    update_env MAIL_FROM_ADDRESS "${MAIL_FROM_ADDRESS}"
+    update_env MAIL_FROM_NAME "${MAIL_FROM_NAME}"
+    update_env MAIL_HOST "${SMTP_HOST}"
+    update_env MAIL_PASSWORD ${SMTP_PASS}
+    update_env MAIL_PORT ${SMTP_PORT}
+    update_env MAIL_TYPE "${MAIL_TYPE}"
+    update_env MAIL_USERNAME ${SMTP_USER}
+}
+
+configure_logging() {
+    if [ "${CONTAINER_LOG_LEVEL}" = "DEBUG" ] ; then
+        LOG_LEVEL=DEBUG
+    fi
+    update_env LOG_CHANNEL "${LOG_CHANNEL}"
+    update_env LOG_LEVEL "${LOG_LEVEL}"
+}
+
+configure_storage() {
+    update_env DEFAULT_MAX_UPLOAD_SIZE ${FILESYSTEM_MAX_UPLOAD_SIZE}
+    update_env DEFAULT_MAX_STORAGE_SIZE ${FILESYSTEM_MAX_STORAGE_SIZE}
+    update_env DEFAULT_FILESYSTEM ${FILESYSTEM}
+    update_env AWS_SERVER ${FILESYSTEM_AWS_SERVER}
+    update_env AWS_KEY ${FILESYSTEM_AWS_KEY}
+    update_env AWS_SECRET ${FILESYSTEM_AWS_SECRET}
+    update_env AWS_REGION ${FILESYSTEM_AWS_REGION}
+    update_env AWS_BUCKET ${FILESYSTEM_AWS_BUCKET}
+    update_env AWS_SERVER ${FILESYSTEM_AWS_SERVER}
+}
+
+configure_monica_options() {
+    update_env APP_TRUSTED_PROXIES ${PROXIES_TRUSTED}
+    update_env APP_TRUSTED_CLOUDFLARE ${PROXIES_TRUST_CLOUDFLARE}
+    update_env CHECK_VERSION ${ENABLE_VERSION_CHECK}
+    update_env SENTRY_SUPPORT ${ENABLE_SENTRY}
+    update_env SENTRY_LARAVEL_DSN ${SENTRY_DSN}
+    update_env PASSPORT_PERSONAL_ACCESS_CLIENT_ID ${PASSPORT_CLIENT_ID}
+    update_env PASSPORT_PERSONAL_ACCESS_CLIENT_SECRET ${PASSPORT_CLIENT_SECRET}
+    update_env ALLOW_STATISTICS_THROUGH_PUBLIC_API_ACCESS ${ENABLE_STATISTICS_PUBLIC_API}
+    update_env POLICY_COMPLIANT ${POLICY_COMPLIANT}
+    update_env ENABLE_GEOLOCATION ${ENABLE_GEOLOCATION}
+    update_env LOCATION_IQ_API_KEY ${API_KEY_LOCATIONIQ}
+    update_env ENABLE_WEATHER ${ENABLE_WEATHER}
+    update_env DARKSKY_API_KEY ${API_KEY_DARKSKY}
+}
+
+
+
+configure_app_key() {
+    ## Generate Key
+    cd "${NGINX_WEBROOT}"
+    chown -R ${NGINX_USER}:${NGINX_GROUP} ${NGINX_WEBROOT}/.env
+    silent sudo -u "${NGINX_USER}" php artisan key:generate --force
+}

@@ -1,0 +1,70 @@
+version: "3.7"
+services:
+  monica-app:
+    image: tiredofit/monica
+    container_name: monica-app
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.monica.rule=Host(`monica.example.com`)
+      - traefik.http.services.monica.loadbalancer.server.port=80
+    volumes:
+      - ./data:/data
+      - ./logs:/www/logs/
+    environment:
+      - ZABBIX_HOSTNAME=monica-app
+      - DEBUG_MODE=TRUE
+      - DB_HOST=monica-db
+      - DB_PORT=3306
+      - DB_NAME=monica
+      - DB_USER=monica
+      - DB_PASS=monicapass
+
+      - SITE_URL=https://monica.example.com
+       
+    networks:
+      - proxy
+      - services
+    restart: always
+
+  monica-db:
+    image: tiredofit/mariadb
+    container_name: monica-db
+    volumes:
+      - ./db:/var/lib/mysql
+    environment:
+      - ROOT_PASS=password
+      - DB_NAME=monica
+      - DB_USER=monica
+      - DB_PASS=monicapass
+    networks:
+      - services
+    restart: always
+
+  monica-db-backup:
+    image: tiredofit/db-backup
+    container_name: monica-db-backup
+    links:
+      - monica-db
+    volumes:
+      - ./dbbackup:/backup
+    environment:
+      - ZABBIX_HOSTNAME=monica-db-backup
+      - DB_HOST=monica-db
+      - DB_TYPE=mariadb
+      - DB_NAME=monica
+      - DB_USER=monica
+      - DB_PASS=monicapass
+      - DB_DUMP_FREQ=1440
+      - DB_DUMP_BEGIN=0000
+      - DB_CLEANUP_TIME=8640
+      - COMPRESSION=BZ
+      - MD5=TRUE
+    networks:
+      - services
+    restart: always
+
+networks:
+  proxy:
+    external: true
+  services:
+    external: true

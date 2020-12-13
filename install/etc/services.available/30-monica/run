@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bash
+
+source /assets/functions/00-container
+prepare_service defaults 30-monica
+PROCESS_NAME="monica-worker"
+
+check_container_initialized
+check_service_initialized init 30-monica
+liftoff
+
+print_info "Starting worker"
+cd ${NGINX_WEBROOT}
+silent sudo -u ${NGINX_USER} php artisan queue:work

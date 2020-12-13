@@ -1,0 +1,160 @@
+#!/usr/bin/with-contenv bash
+
+source /assets/functions/00-container
+prepare_service
+PROCESS_NAME="monica"
+
+sanity_db
+db_ready mariadb
+
+### Logfile redirection
+mkdir -p /www/logs/laravel
+chown -R "${NGINX_USER}":"${NGINX_GROUP}" /www/logs/laravel
+rm -rf "${NGINX_WEBROOT}"/storage/logs
+ln -sf /www/logs/laravel "${NGINX_WEBROOT}"/storage/logs
+
+### Check if New Install
+if [ ! -f "${NGINX_WEBROOT}/server.php" ]; then
+
+    print_warn "Potential New Installation / Standalone Installation Detected - Copying Monica Sourcecode"
+    cp -R /assets/install/* "${NGINX_WEBROOT}"
+
+    ### If running with /www/html or NGINX_WEBROOT mappd, then create persistent storage
+    ### Storage redirection
+    if [ -d "/data" ]; then
+        print_warn "Detected /data directory - Persistently saving settings/sessions/cache/uploads/modules"
+        if [ ! -d "/data/storage" ]; then
+            cp -R "${NGINX_WEBROOT}"/storage /data
+        fi
+        rm -rf "${NGINX_WEBROOT}"/storage
+        ln -sf /data/storage "${NGINX_WEBROOT}"/storage
+        rm -rf "${NGINX_WEBROOT}"/storage/logs
+        ln -sf /www/logs/laravel "${NGINX_WEBROOT}"/storage/logs
+        if [ ! -d "/data/uploads" ]; then
+            cp -R "${NGINX_WEBROOT}"/public/uploads /data
+        fi
+        rm -rf "${NGINX_WEBROOT}"/public/uploads
+        ln -s /data/uploads "${NGINX_WEBROOT}"/public/uploads
+        mkdir -p /data/uploads
+        #if [ ! -d "/data/${MEDIA_DISK}" ]; then
+        #    mkdir -p /data/media
+        #    cp -R "${NGINX_WEBROOT}"/public/${MEDIA_DISK} /data/media
+        #fi
+        #rm -rf "${NGINX_WEBROOT}"/public/${MEDIA_DISK}
+        #ln -s /data/media "${NGINX_WEBROOT}"/public/media
+
+        ln -sf /data/config "${NGINX_WEBROOT}"/.env
+        touch /data/config
+        silent chown "${NGINX_USER}":"${NGINX_GROUP}" "${NGINX_WEBROOT}"/.env
+        ln -sf /data/.monica-version "${NGINX_WEBROOT}"/.monica-version
+        chown -R "${NGINX_USER}":"${NGINX_GROUP}" /data
+    fi
+
+    ### Auto Upgrade functionality
+    if [ ! -f "${NGINX_WEBROOT}/.monica-version" ]; then
+        echo "${MONICA_VERSION} first installed on $(date)" >>"${NGINX_WEBROOT}"/.monica-version
+    fi
+    chown -R "${NGINX_USER}":"${NGINX_GROUP}" "${NGINX_WEBROOT}"
+else
+    if var_true "$ENABLE_AUTO_UPDATE"; then
+        if [ "$MONICA_VERSION" != $(head -n 1 "${NGINX_WEBROOT}"/.monica-version | awk '{print $1'}) ]; then
+        print_warn "Detected in place EMNG version $(head -n 1 "${NGINX_WEBROOT}"/.monica-version | awk "{print $1"}) - Upgrading to ${MONICA_VERSION}"
+            cp -R /assets/install/* "${NGINX_WEBROOT}"
+            chown -R "${NGINX_USER}":"${NGINX_GROUP}" "${NGINX_WEBROOT}"
+            cd "${NGINX_WEBROOT}" || exit
+            silent /usr/bin/expect<<EOD
+spawn sudo -u "${NGINX_USER}" php artisan monica:update --no-ansi
+set timeout 30
+expect \
+{
+  (yes/no) {exp_send yes\r;exp_continue}
+  eof {}
+}
+EOD
+            sed -i --follow-symlinks "1 i\
+            ${MONICA_VERSION} upgraded on $(date)" ${NGINX_WEBROOT}/.monica-version
+        fi
+    fi
+fi
+
+if [ "$SETUP_TYPE" = "AUTO" ]; then
+    print_notice "Generating Configuration"
+
+    if [ -L "${NGINX_WEBROOT}/.env" ] ; then
+        print_debug "Symbolic Link exists for .env"
+        if [ ! -s "/data/config" ] ; then
+            print_debug "Copying Example .env to /data/config"
+            cp -R /assets/install/.env.example /data/config
+        fi
+    fi
+
+    if [ ! -s "${NGINX_WEBROOT}/.env" ] ; then
+        print_debug "Copying Example .env to .env"
+        cp -R /assets/install/.env.example ${NGINX_WEBROOT}/.env
+    fi
+
+    configure_application
+    configure_db
+    configure_logging
+    configure_mail
+    configure_storage
+    configure_monica_options
+fi
+
+## Generate Key
+print_debug "Generating Key"
+cd "${NGINX_WEBROOT}"
+silent sudo -u "${NGINX_USER}" php artisan key:generate --force
+
+## Cleanup
+print_debug "Cleaning up Cache and Views"
+cd "${NGINX_WEBROOT}"/
+silent sudo -u "${NGINX_USER}" php artisan cache:clear
+silent sudo -u "${NGINX_USER}" php artisan view:clear
+
+### Check to see if DB is populated
+db_ready mariadb
+mysql -u "$DB_USER" -p"$DB_PASS" -h"$DB_HOST" -e "use ""$DB_NAME""; SELECT * FROM users;" >/dev/null 2>&1
+if [ $? -gt 0 ]; then
+    ### Perform Database Installation Routines
+    print_warn "Detected empty Database - Setting up - Please wait.."
+    sleep 5
+    silent sudo -u "${NGINX_USER}" php artisan migrate:fresh --no-ansi
+    silent /usr/bin/expect<<EOD
+spawn sudo -u "${NGINX_USER}" php artisan monica:update --no-ansi
+set timeout 30
+expect \
+{
+  (yes/no) {exp_send yes\r;exp_continue}
+  eof {}
+}
+EOD
+
+    silent sudo -u "${NGINX_USER}" php artisan cache:clear
+    silent sudo -u "${NGINX_USER}" php artisan view:clear
+fi
+
+## Copy over any custom files overtop of source
+if [ -d "/assets/custom" ]; then
+    print_warn "Detected Custom Source - Copying over to application"
+    cp -R /assets/custom/* "${NGINX_WEBROOT}"/
+    chown -R "${NGINX_USER}":"${NGINX_GROUP}" "${NGINX_WEBROOT}"
+fi
+
+## Execute Custom Scripts
+if [ -d /assets/custom-scripts/ ] ; then
+    print_warn "Found Custom Scripts to Execute"
+    for f in $(find /assets/custom-scripts/ -name \*.sh -type f); do
+        print_warn "Running Script ${f}"
+        ${f}
+    done
+fi
+
+cd "${NGINX_WEBROOT}"
+chown -R "${NGINX_USER}":"${NGINX_GROUP}" "${NGINX_WEBROOT}"
+chmod ug+rwx "${NGINX_WEBROOT}"
+
+### Add alias for running artisan
+echo "alias artisan='cd ${NGINX_WEBROOT}; sudo -u ${NGINX_USER} php artisan'" >/root/.bashrc
+
+liftoff
