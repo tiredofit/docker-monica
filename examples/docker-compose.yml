@@ -3,6 +3,8 @@ services:
   monica-app:
     image: tiredofit/monica
     container_name: monica-app
+    links:
+      - monica-db    
     labels:
       - traefik.enable=true
       - traefik.http.routers.monica.rule=Host(`monica.example.com`)
