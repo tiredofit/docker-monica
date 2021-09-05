@@ -8,6 +8,6 @@ check_container_initialized
 check_service_initialized init 30-monica
 liftoff
 
-print_info "Starting worker"
+print_start "Starting worker"
 cd ${NGINX_WEBROOT}
 silent sudo -u ${NGINX_USER} php artisan queue:work

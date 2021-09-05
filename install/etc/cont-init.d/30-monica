@@ -8,10 +8,12 @@ sanity_db
 db_ready mariadb
 
 ### Logfile redirection
-mkdir -p /www/logs/laravel
-chown -R "${NGINX_USER}":"${NGINX_GROUP}" /www/logs/laravel
+mkdir -p "${LOG_PATH}"
+chown -R "${NGINX_USER}":"${NGINX_GROUP}" "${LOG_PATH}"
 rm -rf "${NGINX_WEBROOT}"/storage/logs
-ln -sf /www/logs/laravel "${NGINX_WEBROOT}"/storage/logs
+ln -sf "${LOG_PATH}" "${NGINX_WEBROOT}"/storage/logs
+touch "${LOG_PATH}"/laravel.log
+create_logrotate monica ${LOG_PATH}/laravel.log ${NGNIX_USER} ${NGINX_GROUP}
 
 ### Check if New Install
 if [ ! -f "${NGINX_WEBROOT}/server.php" ]; then
@@ -58,7 +60,7 @@ if [ ! -f "${NGINX_WEBROOT}/server.php" ]; then
 else
     if var_true "$ENABLE_AUTO_UPDATE"; then
         if [ "$MONICA_VERSION" != $(head -n 1 "${NGINX_WEBROOT}"/.monica-version | awk '{print $1'}) ]; then
-        print_warn "Detected in place EMNG version $(head -n 1 "${NGINX_WEBROOT}"/.monica-version | awk "{print $1"}) - Upgrading to ${MONICA_VERSION}"
+        print_warn "Detected in place Monica version $(head -n 1 "${NGINX_WEBROOT}"/.monica-version | awk "{print $1"}) - Upgrading to ${MONICA_VERSION}"
             cp -R /assets/install/* "${NGINX_WEBROOT}"
             chown -R "${NGINX_USER}":"${NGINX_GROUP}" "${NGINX_WEBROOT}"
             cd "${NGINX_WEBROOT}" || exit

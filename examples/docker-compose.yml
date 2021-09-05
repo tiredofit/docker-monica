@@ -13,7 +13,7 @@ services:
       - ./data:/data
       - ./logs:/www/logs/
     environment:
-      - ZABBIX_HOSTNAME=monica-app
+      - CONTAINER_NAME=monica-app
       - DEBUG_MODE=TRUE
       - DB_HOST=monica-db
       - DB_PORT=3306
@@ -50,7 +50,7 @@ services:
     volumes:
       - ./dbbackup:/backup
     environment:
-      - ZABBIX_HOSTNAME=monica-db-backup
+      - CONTAINER_NAME=monica-db-backup
       - DB_HOST=monica-db
       - DB_TYPE=mariadb
       - DB_NAME=monica
