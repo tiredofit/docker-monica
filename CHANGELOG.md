@@ -1,3 +1,9 @@
+## 0.3.1 2021-09-19 <dave at tiredofit dot ca>
+
+   ### Changed
+      - Update artisan alias to remember previous directory
+
+
 ## 0.3.0 2021-09-05 <dave at tiredofit dot ca>
 
    ### Added
