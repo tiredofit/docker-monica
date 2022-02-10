@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
 
 update_env() {
     print_debug "Updating .env '$1' with '$2' value"

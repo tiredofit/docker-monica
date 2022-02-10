@@ -1,7 +1,7 @@
 FROM docker.io/tiredofit/nginx-php-fpm:8.0
 LABEL maintainer="Dave Conroy (github.com/tiredofit)"
 
-ENV MONICA_VERSION=v3.2.3 \
+ENV MONICA_VERSION=v3.3.1 \
     NGINX_WEBROOT=/www/monica \
     PHP_ENABLE_CREATE_SAMPLE_PHP=FALSE \
     PHP_ENABLE_BCMATH=TRUE \
@@ -25,7 +25,9 @@ ENV MONICA_VERSION=v3.2.3 \
     PHP_ENABLE_XML=TRUE \
     PHP_ENABLE_ZIP=TRUE \
     PHP_ENABLE_IMAGICK=TRUE \
-    STAGE=PRODUCTION
+    STAGE=PRODUCTION \
+    IMAGE_NAME="tiredofit/monica" \
+    IMAGE_REPO_URL="https://github.com/tiredofit/docker-monica/"
 
 RUN set -x && \
     apk update && \
