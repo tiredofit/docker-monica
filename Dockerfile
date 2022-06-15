@@ -1,7 +1,7 @@
 FROM docker.io/tiredofit/nginx-php-fpm:8.0
 LABEL maintainer="Dave Conroy (github.com/tiredofit)"
 
-ENV MONICA_VERSION=v3.3.1 \
+ENV MONICA_VERSION=v3.7.0 \
     NGINX_WEBROOT=/www/monica \
     PHP_ENABLE_CREATE_SAMPLE_PHP=FALSE \
     PHP_ENABLE_BCMATH=TRUE \

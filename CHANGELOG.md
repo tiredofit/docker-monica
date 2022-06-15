@@ -1,3 +1,9 @@
+## 0.3.4 2022-06-15 <dave at tiredofit dot ca>
+
+   ### Added
+      - Monica 3.7.0
+
+
 ## 0.3.3 2022-02-10 <dave at tiredofit dot ca>
 
    ### Changed
