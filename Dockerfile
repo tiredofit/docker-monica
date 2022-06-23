@@ -3,6 +3,7 @@ LABEL maintainer="Dave Conroy (github.com/tiredofit)"
 
 ENV MONICA_VERSION=v3.7.0 \
     NGINX_WEBROOT=/www/monica \
+    NGINX_SITE_ENABLED=monica \
     PHP_ENABLE_CREATE_SAMPLE_PHP=FALSE \
     PHP_ENABLE_BCMATH=TRUE \
     PHP_ENABLE_CURL=TRUE \
