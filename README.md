@@ -40,7 +40,7 @@ This will build a Docker Image for [Monica](https://monicahq.com/) - A Personal 
    *  [Traefik](https://github.com/tiredofit/docker-traefik)
    *  [Nginx](https://github.com/jc21/nginx-proxy-manager)
    *  [Caddy](https://github.com/caddyserver/caddy)
-   *
+   
 ## Installation
 
 ### Build from Source
@@ -56,7 +56,7 @@ The following image tags are available along with their tagged release based on 
 | Version | Container OS | Tag       |
 | ------- | ------------ | --------- |
 | latest  | Alpine       | `:latest` |
-```
+
 #### Multi Architecture
 Images are built primarily for `amd64` architecture, and may also include builds for `arm/v7`, `arm64` and others. These variants are all unsupported. Consider [sponsoring](https://github.com/sponsors/tiredofit) my work so that I can work with various hardware. To see if this image supports multiple architecures, type `docker manifest (image):(tag)`
 
