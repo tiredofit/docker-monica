@@ -1,4 +1,4 @@
-FROM docker.io/tiredofit/nginx-php-fpm:8.0
+FROM docker.io/tiredofit/nginx-php-fpm:8.1
 LABEL maintainer="Dave Conroy (github.com/tiredofit)"
 
 ENV MONICA_VERSION=v3.7.0 \
@@ -57,4 +57,4 @@ RUN set -x && \
     rm -rf /root/.composer && \
     rm -rf /app/install/*.{xml,yml,properties,neon,md}
 
-ADD install/ /
+COPY install/ /
