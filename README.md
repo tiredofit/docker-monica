@@ -54,7 +54,7 @@ docker pull docker.io/tiredofdit/monica:(imagetag)
 Builds of the image are also available on the [Github Container Registry](https://github.com/tiredofit/docker-monica/pkgs/container/docker-monica) 
  
 ```
-docker pull ghcr.io/tiredofit/docker-monica/pkgs/container/docker-monica):(imagetag)
+docker pull ghcr.io/tiredofit/docker-monica:(imagetag)
 ``` 
 
 The following image tags are available along with their tagged release based on what's written in the [Changelog](CHANGELOG.md):
