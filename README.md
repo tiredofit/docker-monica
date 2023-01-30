@@ -1,7 +1,7 @@
 # github.com/tiredofit/docker-monica
 
 [![GitHub release](https://img.shields.io/github/v/tag/tiredofit/docker-monica?style=flat-square)](https://github.com/tiredofit/docker-monica/releases/latest)
-[![Build Status](https://img.shields.io/github/workflow/status/tiredofit/docker-monica/build?style=flat-square)](https://github.com/tiredofit/docker-monica/actions?query=workflow%3Abuild)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/tiredofit/docker-monica/main.yml?branch=main&style=flat-square)](https://github.com/tiredofit/docker-monica/actions)
 [![Docker Stars](https://img.shields.io/docker/stars/tiredofit/monica.svg?style=flat-square&logo=docker)](https://hub.docker.com/r/tiredofit/monica/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/tiredofit/monica.svg?style=flat-square&logo=docker)](https://hub.docker.com/r/tiredofit/monica/)
 [![Become a sponsor](https://img.shields.io/badge/sponsor-tiredofit-181717.svg?logo=github&style=flat-square)](https://github.com/sponsors/tiredofit)
