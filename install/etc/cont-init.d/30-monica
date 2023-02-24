@@ -13,10 +13,10 @@ chown -R "${NGINX_USER}":"${NGINX_GROUP}" "${LOG_PATH}"
 rm -rf "${NGINX_WEBROOT}"/storage/logs
 ln -sf "${LOG_PATH}" "${NGINX_WEBROOT}"/storage/logs
 touch "${LOG_PATH}"/laravel.log
-create_logrotate monica ${LOG_PATH}/laravel.log ${NGNIX_USER} ${NGINX_GROUP}
+create_logrotate monica ${LOG_PATH}/laravel.log "${NGNIX_USER}" "${NGINX_GROUP}"
 
 ### Check if New Install
-if [ ! -f "${NGINX_WEBROOT}/server.php" ]; then
+if [ ! -f "${NGINX_WEBROOT}"/server.php ]; then
 
     print_warn "Potential New Installation / Standalone Installation Detected - Copying Monica Sourcecode"
     cp -R /assets/install/* "${NGINX_WEBROOT}"
@@ -31,7 +31,7 @@ if [ ! -f "${NGINX_WEBROOT}/server.php" ]; then
         rm -rf "${NGINX_WEBROOT}"/storage
         ln -sf /data/storage "${NGINX_WEBROOT}"/storage
         rm -rf "${NGINX_WEBROOT}"/storage/logs
-        ln -sf /www/logs/laravel "${NGINX_WEBROOT}"/storage/logs
+        ln -sf "${LOG_PATH}" "${NGINX_WEBROOT}"/storage/logs
         if [ ! -d "/data/uploads" ]; then
             cp -R "${NGINX_WEBROOT}"/public/uploads /data
         fi
@@ -53,7 +53,7 @@ if [ ! -f "${NGINX_WEBROOT}/server.php" ]; then
     fi
 
     ### Auto Upgrade functionality
-    if [ ! -f "${NGINX_WEBROOT}/.monica-version" ]; then
+    if [ ! -f "${NGINX_WEBROOT}"/.monica-version ]; then
         echo "${MONICA_VERSION} first installed on $(date)" >>"${NGINX_WEBROOT}"/.monica-version
     fi
     chown -R "${NGINX_USER}":"${NGINX_GROUP}" "${NGINX_WEBROOT}"
@@ -74,15 +74,15 @@ expect \
 }
 EOD
             sed -i --follow-symlinks "1 i\
-            ${MONICA_VERSION} upgraded on $(date)" ${NGINX_WEBROOT}/.monica-version
+            ${MONICA_VERSION} upgraded on $(date)" "${NGINX_WEBROOT}"/.monica-version
         fi
     fi
 fi
 
-if [ "$SETUP_TYPE" = "AUTO" ]; then
+if [ "${SETUP_TYPE,,}" = "auto" ]; then
     print_notice "Generating Configuration"
 
-    if [ -L "${NGINX_WEBROOT}/.env" ] ; then
+    if [ -L "${NGINX_WEBROOT}"/.env ] ; then
         print_debug "Symbolic Link exists for .env"
         if [ ! -s "/data/config" ] ; then
             print_debug "Copying Example .env to /data/config"
@@ -92,7 +92,7 @@ if [ "$SETUP_TYPE" = "AUTO" ]; then
 
     if [ ! -s "${NGINX_WEBROOT}/.env" ] ; then
         print_debug "Copying Example .env to .env"
-        cp -R /assets/install/.env.example ${NGINX_WEBROOT}/.env
+        cp -R /assets/install/.env.example "${NGINX_WEBROOT}"/.env
     fi
 
     configure_application
@@ -147,7 +147,7 @@ chmod ug+rwx "${NGINX_WEBROOT}"
 cat >> /root/.bashrc <<EOF
 function artisan() {
       export oldpwd="\$(pwd)"
-      cd /www/bookstack
+      cd "${NGINX_WEBROOT}"
       sudo -u nginx php artisan "\$@"
       cd "\${oldpwd}"
 }

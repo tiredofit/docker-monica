@@ -1,7 +1,13 @@
-FROM docker.io/tiredofit/nginx-php-fpm:8.1
+ARG DISTRO=alpine
+ARG PHP_VERSION=8.1
+
+FROM docker.io/tiredofit/nginx-php-fpm:${PHP_VERSION}-${DISTRO}
 LABEL maintainer="Dave Conroy (github.com/tiredofit)"
 
-ENV MONICA_VERSION=v3.7.0 \
+ARG MONICA_VERSION
+
+ENV MONICA_VERSION=${MONICA_VERSION:-"v4.0.0"} \
+    MONICA_REPO_URL=https://github.com/monicahq/monica \
     NGINX_WEBROOT=/www/monica \
     NGINX_SITE_ENABLED=monica \
     PHP_ENABLE_CREATE_SAMPLE_PHP=FALSE \
@@ -30,31 +36,41 @@ ENV MONICA_VERSION=v3.7.0 \
     IMAGE_NAME="tiredofit/monica" \
     IMAGE_REPO_URL="https://github.com/tiredofit/docker-monica/"
 
-RUN set -x && \
-    apk update && \
-    apk upgrade && \
-    apk add -t .monica-build-deps \
+RUN source /assets/functions/00-container && \
+    set -x && \
+    package update && \
+    package upgrade && \
+    package install .monica-build-deps \
                 nodejs \
                 npm \
                 yarn \
                 && \
-    apk add -t .monica-rundeps \
+    package install .monica-rundeps \
                 expect \
                 git \
                 sed \
                 && \
-    mkdir -p /assets/install && \
+    \
     php-ext enable core && \
-    git clone https://github.com/monicahq/monica /assets/install && \
-    cd /assets/install && \
-    git checkout -b ${MONICA_VERSION} && \
+    clone_git_repo "${MONICA_REPO_URL}" "${MONICA_VERSION}" /assets/install && \
     composer install --no-interaction --no-suggest --no-dev --ignore-platform-reqs && \
     yarn install && \
     yarn run production && \
     \
-    apk del .monica-build-deps && \
-    rm -rf /var/cache/apk/* && \
-    rm -rf /root/.composer && \
-    rm -rf /app/install/*.{xml,yml,properties,neon,md}
+    package remove .monica-build-deps && \
+    package cleanup && \
+    rm -rf \
+            /assets/install/*.md \
+            /assets/install/*.neon \
+            /assets/install/*.properties \
+            /assets/install/*.xml \
+            /assets/install/*.yml \
+            /assets/install/Procfile \
+            /assets/install/node_modules \
+            /root/.composer \
+            /root/.cache \
+            /usr/local/share/.cache
 
 COPY install/ /
+
+RUN php-ext disable core

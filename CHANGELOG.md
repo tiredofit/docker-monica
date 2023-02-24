@@ -1,3 +1,12 @@
+## 0.4.0 2023-02-24 <dave at tiredofit dot ca>
+
+   ### Added
+      - Monica 4.0
+      - PHP 8.1
+      - Code Cleanup
+      - Fix Logrotate issues
+
+
 ## 0.3.7 2022-11-23 <dave at tiredofit dot ca>
 
    ### Added

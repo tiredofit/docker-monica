@@ -99,10 +99,9 @@ configure_monica_options() {
 }
 
 
-
 configure_app_key() {
     ## Generate Key
     cd "${NGINX_WEBROOT}"
-    chown -R ${NGINX_USER}:${NGINX_GROUP} ${NGINX_WEBROOT}/.env
+    chown -R "${NGINX_USER}":"${NGINX_GROUP}" "${NGINX_WEBROOT}"/.env
     silent sudo -u "${NGINX_USER}" php artisan key:generate --force
 }

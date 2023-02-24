@@ -9,5 +9,5 @@ check_service_initialized init 30-monica
 liftoff
 
 print_start "Starting worker"
-cd ${NGINX_WEBROOT}
-silent sudo -u ${NGINX_USER} php artisan queue:work
+cd "${NGINX_WEBROOT}"
+silent s6-setuidgid "${NGINX_USER}" php artisan queue:work
