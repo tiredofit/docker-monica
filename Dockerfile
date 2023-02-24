@@ -73,4 +73,3 @@ RUN source /assets/functions/00-container && \
 
 COPY install/ /
 
-RUN php-ext disable core
