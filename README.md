@@ -49,7 +49,7 @@ Clone this repository and build the image with `docker build <arguments> (imagen
 Builds of the image are available on [Docker Hub](https://hub.docker.com/r/tiredofit/monica)
 
 ```bash
-docker pull docker.io/tiredofdit/monica:(imagetag)
+docker pull docker.io/tiredofit/monica:(imagetag)
 ```
 Builds of the image are also available on the [Github Container Registry](https://github.com/tiredofit/docker-monica/pkgs/container/docker-monica) 
  
@@ -95,7 +95,7 @@ The following directories are used for configuration and can be mapped for persi
 
 #### Base Images used
 
-This image relies on an [Alpine Linux](https://hub.docker.com/r/tiredofit/alpine) base image that relies on an [init system](https://github.com/just-containers/s6-overlay) for added capabilities. Outgoing SMTP capabilities are handlded via `msmtp`. Individual container performance monitoring is performed by [zabbix-agent](https://zabbix.org). Additional tools include: `bash`,`curl`,`less`,`logrotate`,`nano`,`vim`.
+This image relies on an [Alpine Linux](https://hub.docker.com/r/tiredofit/alpine) base image that relies on an [init system](https://github.com/just-containers/s6-overlay) for added capabilities. Outgoing SMTP capabilities are handlded via `msmtp`. Individual container performance monitoring is performed by [zabbix-agent](https://zabbix.org). Additional tools include: `bash`,`curl`,`less`,`logrotate`,`nano`.
 
 Be sure to view the following repositories to understand all the customizable options:
 
